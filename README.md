@@ -1,63 +1,121 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/cert-manager/cert-manager/d53c0b9270f8cd90d908460d69502694e1838f5f/logo/logo-small.png" height="256" width="256" alt="cert-manager project logo" />
-</p>
+# Alibaba Cloud ESA ACME webhook
 
-# ACME webhook example
+This is a webhook solver for [cert-manager](https://cert-manager.io/) that can be used to issue ACME certificates by using Alibaba Cloud Edge Security Acceleration (ESA) DNS01 challenges.
 
-The ACME issuer type supports an optional 'webhook' solver, which can be used
-to implement custom DNS01 challenge solving logic.
+## Features
 
-This is useful if you need to use cert-manager with a DNS provider that is not
-officially supported in cert-manager core.
+- Supports DNS01 challenges using Alibaba Cloud ESA
+- Compatible with cert-manager v1.15+
+- Secure credential management through Kubernetes secrets
 
-## Why not in core?
+## Installation
 
-As the project & adoption has grown, there has been an influx of DNS provider
-pull requests to our core codebase. As this number has grown, the test matrix
-has become un-maintainable and so, it's not possible for us to certify that
-providers work to a sufficient level.
+### Prerequisites
 
-By creating this 'interface' between cert-manager and DNS providers, we allow
-users to quickly iterate and test out new integrations, and then packaging
-those up themselves as 'extensions' to cert-manager.
+- Kubernetes cluster with cert-manager installed
+- Alibaba Cloud account with ESA service enabled
+- A domain managed by Alibaba Cloud ESA
 
-We can also then provide a standardised 'testing framework', or set of
-conformance tests, which allow us to validate that a DNS provider works as
-expected.
+### Deploy the webhook
 
-## Creating your own webhook
+1. Create a secret with your Alibaba Cloud credentials:
 
-Webhook's themselves are deployed as Kubernetes API services, in order to allow
-administrators to restrict access to webhooks with Kubernetes RBAC.
-
-This is important, as otherwise it'd be possible for anyone with access to your
-webhook to complete ACME challenge validations and obtain certificates.
-
-To make the set up of these webhook's easier, we provide a template repository
-that can be used to get started quickly.
-
-When implementing your webhook, you should set the `groupName` in the
-[values.yml](deploy/alicloud-esa-webhook/values.yaml) of your chart to a domain name that
-you - as the webhook-author - own. It should not need to be adjusted by the users of
-your chart.
-
-### Creating your own repository
-
-### Running the test suite
-
-All DNS providers **must** run the DNS01 provider conformance testing suite,
-else they will have undetermined behaviour when used with cert-manager.
-
-**It is essential that you configure and run the test suite when creating a
-DNS01 webhook.**
-
-An example Go test file has been provided in [main_test.go](https://github.com/cert-manager/webhook-example/blob/master/main_test.go).
-
-You can run the test suite with:
-
-```bash
-$ TEST_ZONE_NAME=example.com. make test
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alicloud-esa-secret
+  namespace: cert-manager
+data:
+  access-key-id: <base64-encoded-access-key-id>
+  access-key-secret: <base64-encoded-access-key-secret>
 ```
 
-The example file has a number of areas you must fill in and replace with your
-own options in order for tests to pass.
+2. Deploy the webhook:
+
+```bash
+kubectl apply -f deploy/
+```
+
+3. Create an Issuer using the webhook:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: your-email@example.com
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+    - dns01:
+        webhook:
+          groupName: acme.yourcompany.com
+          solverName: alicloud-esa-solver
+          config:
+            regionId: "ap-southeast-1"
+            accessKeyIdSecretRef:
+              name: alicloud-esa-secret
+              key: access-key-id
+            accessKeySecretSecretRef:
+              name: alicloud-esa-secret
+              key: access-key-secret
+```
+
+## Configuration
+
+The webhook accepts the following configuration parameters:
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `regionId` | Alibaba Cloud region ID (e.g., "ap-southeast-1") | Yes |
+| `accessKeyIdSecretRef` | Reference to Kubernetes secret containing AccessKey ID | Yes |
+| `accessKeySecretSecretRef` | Reference to Kubernetes secret containing AccessKey Secret | Yes |
+
+## Supported Regions
+
+The webhook supports all Alibaba Cloud regions where ESA service is available. The most commonly used regions are:
+
+- `ap-southeast-1` (Singapore)
+- `us-east-1` (US East)
+- `eu-west-1` (Europe West)
+
+## Development
+
+### Building
+
+```bash
+go build -o webhook .
+```
+
+### Testing
+
+```bash
+go test -v .
+```
+
+### Creating a new release
+
+```bash
+docker build -t your-registry/cert-manager-alicloud-esa-webhook:latest .
+docker push your-registry/cert-manager-alicloud-esa-webhook:latest
+```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for your changes
+5. Submit a pull request
+
+## Support
+
+For issues and feature requests, please create an issue in the GitHub repository.

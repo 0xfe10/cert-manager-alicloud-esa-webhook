@@ -1,11 +1,11 @@
 {
-  "regionId": "cn-hangzhou",
-  "accessTokenSecretRef": {
-    "name": "alicloud-secret",
-    "key": "access-token"
+  "regionId": "ap-southeast-1",
+  "accessKeyIdSecretRef": {
+    "name": "alicloud-esa-secret",
+    "key": "access-key-id"
   },
-  "secretKeySecretRef": {
-    "name": "alicloud-secret",
-    "key": "secret-key"
+  "accessKeySecretSecretRef": {
+    "name": "alicloud-esa-secret",
+    "key": "access-key-secret"
   }
 }
