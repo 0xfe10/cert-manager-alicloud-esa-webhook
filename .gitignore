@@ -64,3 +64,5 @@ coverage.txt
 tmp/
 
 _test
+
+testdata/**/alicloud-secret.yaml
