@@ -62,3 +62,5 @@ coverage.txt
 
 # Air (live reload)
 tmp/
+
+_test
