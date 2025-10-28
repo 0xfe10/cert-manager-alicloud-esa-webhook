@@ -80,8 +80,7 @@ The webhook accepts the following configuration parameters:
 The webhook supports all Alibaba Cloud regions where ESA service is available. The most commonly used regions are:
 
 - `ap-southeast-1` (Singapore)
-- `us-east-1` (US East)
-- `eu-west-1` (Europe West)
+- `cn-hangzhou` (Hangzhou)
 
 ## Development
 

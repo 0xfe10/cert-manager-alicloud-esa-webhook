@@ -1,0 +1,83 @@
+name: Release
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+jobs:
+  release-docker-image:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ env.DOCKER_REGISTRY }}
+
+      - name: Tag
+        uses: olegtarasov/get-tag@v2.1
+      - name: Sha
+        uses: benjlevesque/short-sha@v3.0
+
+      - name: Publish docker image
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: .
+          file: Dockerfile
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:sha-${{ env.SHA }}
+            ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:staging
+
+      - name: Publish docker image with tag
+        uses: docker/build-push-action@v6
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          push: true
+          context: .
+          file: docker/Dockerfile
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:${{ env.GIT_TAG_NAME }}
+            ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:latest
+
+  release-helm-chart:
+    name: Release helm chart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Get Chart Version
+        id: chart_version
+        run: |
+          version=$(yq eval '.version' deploy/alicloud-esa-webhook/Chart.yaml)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Chart | Push
+        uses: appany/helm-oci-chart-releaser@v0.5.0
+        with:
+          name: alicloud-esa-webhook-helm
+          repository: ${{ github.repository }}
+          tag: ${{ steps.chart_version.outputs.version }}
+          path: deploy/alicloud-esa-webhook
+          registry: ghcr.io
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          update_dependencies: "false" # Defaults to false
+
+
