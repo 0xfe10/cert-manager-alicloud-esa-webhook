@@ -19,12 +19,14 @@ func TestRunsSuite(t *testing.T) {
 
 	// Uncomment the below fixture when implementing your custom DNS provider
 	fixture := acmetest.NewFixture(&alicloudESAProviderSolver{},
+		acmetest.SetDNSName(zone),
 		acmetest.SetResolvedZone(zone),
 		acmetest.SetAllowAmbientCredentials(false),
 		acmetest.SetManifestPath("testdata/alicloud-esa-solver"),
+		// acmetest.SetDNSServer("ns7.alidns.com:53"),
 	)
 	//need to uncomment and  RunConformance delete runBasic and runExtended once https://github.com/cert-manager/cert-manager/pull/4835 is merged
-	//fixture.RunConformance(t)
+	// fixture.RunConformance(t)
 	fixture.RunBasic(t)
 	fixture.RunExtended(t)
 }
