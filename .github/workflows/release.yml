@@ -65,7 +65,7 @@ jobs:
       - name: Get Chart Version
         id: chart_version
         run: |
-          version=$(yq eval '.version' deploy/alicloud-esa-webhook/Chart.yaml)
+          version=$(yq eval '.version' deploy/alicloud-esa-webhook-helm/Chart.yaml)
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Chart | Push
@@ -74,7 +74,7 @@ jobs:
           name: alicloud-esa-webhook-helm
           repository: ${{ github.repository }}
           tag: ${{ steps.chart_version.outputs.version }}
-          path: deploy/alicloud-esa-webhook
+          path: deploy/alicloud-esa-webhook-helm
           registry: ghcr.io
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
