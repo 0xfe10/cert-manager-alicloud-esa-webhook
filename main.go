@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	esa "github.com/alibabacloud-go/esa-20240910/v2/client"
@@ -278,14 +277,10 @@ func (c *alicloudESAProviderSolver) getSiteId(domain string) (int64, error) {
 }
 
 // extractRecordName extracts the record name from FQDN and domain
+// For ESA, we need the full FQDN as record name, not just the prefix like ALIDNS
 func (c *alicloudESAProviderSolver) extractRecordName(fqdn, domain string) string {
-	name := dnsutil.UnFqdn(fqdn)
-	domain = dnsutil.UnFqdn(domain)
-
-	if idx := strings.LastIndex(name, "."+domain); idx != -1 {
-		return name[:idx]
-	}
-	return name
+	// ESA requires full FQDN as record name
+	return dnsutil.UnFqdn(fqdn)
 }
 
 // createTxtRecord creates a TXT record in ESA
