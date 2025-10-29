@@ -16,7 +16,7 @@ certManager:
 
 image:
   repository: ghcr.io/0xfe10/cert-manager-alicloud-esa-webhook
-  tag: sha-416b5c4
+  tag: sha-3b02a83
   pullPolicy: IfNotPresent
 
 nameOverride: ""
