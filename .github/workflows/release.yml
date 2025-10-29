@@ -35,6 +35,7 @@ jobs:
 
       - name: Publish docker image
         uses: docker/build-push-action@v6
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         with:
           push: true
           context: .
@@ -49,7 +50,7 @@ jobs:
         with:
           push: true
           context: .
-          file: docker/Dockerfile
+          file: Dockerfile
           tags: |
             ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:${{ env.GIT_TAG_NAME }}
             ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:latest
