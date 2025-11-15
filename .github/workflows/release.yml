@@ -67,7 +67,7 @@ jobs:
           version=$(yq eval '.version' deploy/alicloud-esa-webhook-helm/Chart.yaml)
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Chart | Push
+      - name: Chart | Push ghcr
         uses: appany/helm-oci-chart-releaser@v0.5.0
         with:
           name: alicloud-esa-webhook-helm
@@ -78,5 +78,17 @@ jobs:
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
           update_dependencies: "false" # Defaults to false
+
+      - name: Chart | Push volces
+        uses: appany/helm-oci-chart-releaser@v0.5.0
+        with:
+          name: alicloud-esa-webhook-helm
+          repository: coogz
+          tag: ${{ steps.chart_version.outputs.version }}
+          path: deploy/alicloud-esa-webhook-helm
+          registry: money-cn-guangzhou.cr.volces.com
+          registry_username: ${{ secrets.CR_VOLCES_USERNAME_AYN }}
+          registry_password: ${{ secrets.CR_VOLCES_PASSWORD_AYN }}
+          update_dependencies: "false"
 
 
