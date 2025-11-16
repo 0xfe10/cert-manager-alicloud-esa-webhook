@@ -21,11 +21,9 @@ spec:
         release: {{ .Release.Name }}
     spec:
       serviceAccountName: {{ include "alicloud-esa-webhook.fullname" . }}
-    {{- with .Values.image.pullSecrets }}
+    {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-      {{- range . }}
-        - name: {{ . }}
-      {{- end }}
+{{ toYaml . | indent 8 }}
     {{- end }}
       containers:
         - name: {{ .Chart.Name }}
